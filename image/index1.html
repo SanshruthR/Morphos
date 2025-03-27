@@ -1,0 +1,1014 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Morphos</title>
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+<link rel="manifest" href="/site.webmanifest">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.10.5/font/bootstrap-icons.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.7.1/jszip.min.js"></script>
+    <style>
+        .class-card.disabled {
+            opacity: 0.5;
+        }
+        body {
+            background-color: #e9ecf1;
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+        }
+        .header {
+            background-color: white;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            padding: 10px 20px;
+            display: flex;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        .menu-icon {
+            font-size: 24px;
+            margin-right: 15px;
+            color: #555;
+            cursor: pointer;
+        }
+        .logo {
+            color: #4285f4;
+            font-size: 20px;
+            font-weight: 500;
+            text-decoration: none;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 20px auto;
+            padding: 0 20px;
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 20px;
+            position: relative;
+        }
+        .left-column {
+            display: flex;
+            flex-direction: column;
+        }
+        .class-card {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+        .class-header {
+            padding: 15px;
+            border-bottom: 1px solid #f0f0f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .class-title {
+            font-size: 18px;
+            font-weight: 500;
+            color: #333;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .class-name {
+            cursor: default;
+        }
+        .class-icons {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        .edit-icon, .delete-icon {
+            color: #999;
+            cursor: pointer;
+        }
+        .delete-icon:hover {
+            color: #dc3545;
+        }
+        .menu-dots {
+            color: #999;
+            cursor: pointer;
+            position: relative;
+        }
+        .dropdown-menu {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            background-color: white;
+            border-radius: 4px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+            display: none;
+            z-index: 100;
+            width: 180px;
+        }
+        .dropdown-menu.show {
+            display: block;
+        }
+        .dropdown-item {
+            padding: 10px 15px;
+            cursor: pointer;
+            color: #333;
+            display: block;
+            text-decoration: none;
+            white-space: nowrap;
+        }
+        .dropdown-item:hover {
+            background-color: #f5f5f5;
+        }
+        .class-content {
+            padding: 15px;
+        }
+        .samples-label {
+            margin-bottom: 15px;
+            color: #555;
+        }
+        .sample-buttons {
+            display: flex;
+            gap: 10px;
+        }
+        .sample-button {
+            background-color: #f0f5ff;
+            border: none;
+            border-radius: 4px;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            cursor: pointer;
+            width: 90px;
+        }
+        .sample-button:hover {
+            background-color: #e6eeff;
+        }
+        .sample-icon {
+            color: #4285f4;
+            font-size: 24px;
+            margin-bottom: 5px;
+        }
+        .sample-label {
+            color: #4285f4;
+            font-size: 14px;
+        }
+        .samples-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            margin-top: 10px;
+        }
+        .sample-image {
+            width: 60px;
+            height: 60px;
+            object-fit: cover;
+            border-radius: 4px;
+        }
+        .add-class-btn {
+            border: 2px dashed #ccc;
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+            color: #888;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: none;
+            width: 100%;
+            font-size: 16px;
+            margin-bottom: 20px;
+        }
+        .add-class-btn:hover {
+            border-color: #4285f4;
+            color: #4285f4;
+        }
+        .add-icon {
+            margin-right: 8px;
+        }
+        .right-column {
+            display: flex;
+            flex-direction: row;
+            gap: 20px;
+            align-items: center;
+            height: 100%;
+        }
+        .training-section, .preview-section {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            flex: 1;
+        }
+        .section-title {
+            padding: 15px;
+            font-weight: 500;
+            color: #333;
+            font-size: 18px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        .train-button {
+            display: block;
+            width: 100%;
+            padding: 15px;
+            background-color: #f8f9fa;
+            border: none;
+            text-align: center;
+            font-weight: 500;
+            color: #333;
+            cursor: pointer;
+        }
+        .train-button:hover {
+            background-color: #f0f0f0;
+        }
+        .training-status {
+            padding: 10px;
+            text-align: center;
+            color: #333;
+            font-weight: 500;
+            font-size: 14px;
+            background-color: #f8f9fa;
+            border-radius: 4px;
+            margin: 10px 0;
+            transition: opacity 0.3s ease;
+        }
+        .training-status:empty {
+            opacity: 0;
+            height: 0;
+            padding: 0;
+            margin: 0;
+        }
+        .advanced-dropdown {
+            padding: 15px;
+            border-top: 1px solid #f0f0f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            color: #888;
+            position: relative;
+        }
+        .advanced-panel {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            width: 100%;
+            background-color: white;
+            border: 1px solid #f0f0f0;
+            padding: 10px;
+            z-index: 10;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+        .option-group {
+            margin-bottom: 10px;
+        }
+        .option-group label {
+            margin-right: 10px;
+        }
+        .preview-tabs {
+            display: flex;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        .preview-tab {
+            padding: 15px;
+            flex: 1;
+            text-align: center;
+            background: none;
+            border: none;
+            font-weight: 500;
+            color: #333;
+            cursor: pointer;
+        }
+        .preview-tab.active {
+            color: #4285f4;
+            border-bottom: 2px solid #4285f4;
+        }
+        .preview-content {
+            padding: 30px 15px;
+            text-align: center;
+            color: #888;
+        }
+        #preview-webcam {
+            width: 224px;
+            height: 224px;
+            margin-bottom: 20px;
+        }
+        .prediction-bars {
+            width: 100%;
+        }
+        .prediction-bar {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .prediction-bar .class-name {
+            width: 100px;
+            text-align: right;
+            margin-right: 10px;
+        }
+        .bar-container {
+            flex-grow: 1;
+            height: 20px;
+            background-color: #f0f0f0;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        .bar {
+            height: 100%;
+            border-radius: 10px 0 0 10px;
+        }
+        .prediction-value {
+            width: 50px;
+            text-align: left;
+            margin-left: 10px;
+        }
+        .class-name-edit {
+            border: 1px solid #4285f4;
+            border-radius: 4px;
+            padding: 2px 6px;
+            outline: none;
+            font-size: 18px;
+            font-weight: 500;
+            color: #333;
+            width: auto;
+        }
+        .connections {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+        }
+        .webcam-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        .webcam-modal-content {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+        }
+        #webcam-video {
+            width: 320px;
+            height: 240px;
+            background-color: black;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="menu-bar" style="display: flex; justify-content: space-between; align-items: center; width: 100%; padding: 10px;">
+            <!-- Back Button (Left) -->
+            <a href="/index.html" style="text-decoration: none; font-size: 18px; color: #333; display: flex; align-items: center; gap: 5px;">
+                <i class="bi bi-arrow-left-circle" style="font-size: 20px;"></i> Home Page
+            </a>
+        
+            <!-- Forward Button (Right) -->
+            <a href="/predictions.html" style="text-decoration: none; font-size: 18px; color: #333; display: flex; align-items: center; gap: 5px; margin-left: auto;">
+                Make Predictions <i class="bi bi-arrow-right-circle" style="font-size: 20px;"></i>
+            </a>
+        </div>
+        
+    </div>
+
+    <div class="container" id="mainContainer">
+        <div class="left-column" id="classesContainer"></div>
+        <div class="right-column">
+            <div class="training-section">
+                <div class="section-title">Training</div>
+                <button class="train-button" id="trainBtn">Train Model</button>
+                <div class="advanced-dropdown">
+                    <div>Advanced</div>
+                    <i class="bi bi-chevron-down"></i>
+                </div>
+            </div>
+            <div class="preview-section">
+                <div class="preview-tabs">
+                    <button class="preview-tab active" id="previewTab">Preview</button>
+                    <button class="preview-tab" id="exportTab"><i class="bi bi-sliders"></i> Export Model</button>
+                </div>
+                <div class="preview-content" id="previewContent">You must train a model on the left before you can preview it here.</div>
+            </div>
+            <svg class="connections" id="connections"></svg>
+        </div>
+    </div>
+
+    <input type="file" id="fileInput" multiple accept="image/*" style="display: none;">
+
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@3.11.0/dist/tf.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/mobilenet@2.1.0/dist/mobilenet.min.js"></script>
+    <script>
+        class Webcam {
+            constructor(videoElement) {
+                this.videoElement = videoElement;
+                this.stream = null;
+            }
+
+            async setup() {
+                if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+                    this.stream = await navigator.mediaDevices.getUserMedia({
+                        video: { width: { ideal: 224 }, height: { ideal: 224 } },
+                        audio: false
+                    });
+                    this.videoElement.srcObject = this.stream;
+                    return new Promise((resolve) => {
+                        this.videoElement.onloadedmetadata = () => resolve();
+                    });
+                } else {
+                    throw new Error('Webcam not supported');
+                }
+            }
+
+            capture() {
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                canvas.width = this.videoElement.videoWidth;
+                canvas.height = this.videoElement.videoHeight;
+                ctx.drawImage(this.videoElement, 0, 0, canvas.width, canvas.height);
+                return {
+                    imageData: canvas.toDataURL('image/png'),
+                    tensor: tf.tidy(() => {
+                        const image = tf.browser.fromPixels(canvas);
+                        const resized = tf.image.resizeBilinear(image, [224, 224]);
+                        return resized.toFloat().div(tf.scalar(127.5)).sub(tf.scalar(1)).expandDims(0);
+                    })
+                };
+            }
+
+            stop() {
+                if (this.stream) {
+                    this.stream.getTracks().forEach(track => track.stop());
+                    this.stream = null;
+                    this.videoElement.srcObject = null;
+                }
+            }
+        }
+
+        class ImageClassifier {
+            constructor() {
+                this.mobilenet = null;
+                this.model = null;
+                this.trainingData = {};
+                this.labels = []; // Will store display names
+                this.classIdToName = {}; // Map classId to display name
+            }
+
+            async load() {
+                this.mobilenet = await mobilenet.load({ version: 2, alpha: 0.5 });
+            }
+
+            addExample(classId, tensor) {
+                if (!this.trainingData[classId]) {
+                    this.trainingData[classId] = [];
+                    const displayName = this.classIdToName[classId] || classId;
+                    this.labels.push(displayName);
+                }
+                const features = tf.tidy(() => this.mobilenet.infer(tensor, true).squeeze());
+                this.trainingData[classId].push(features);
+            }
+
+            updateLabel(classId, newName) {
+                const index = this.labels.indexOf(this.classIdToName[classId] || classId);
+                if (index !== -1) {
+                    this.labels[index] = newName;
+                }
+                this.classIdToName[classId] = newName;
+            }
+
+            async train(epochs = 10, batchSize = 16, learningRate = 0.001, onEpochUpdate = () => {}) {
+                const enabledClassIds = Object.keys(this.trainingData).filter(classId => 
+                    !document.getElementById(classId).classList.contains('disabled') && this.trainingData[classId].length > 0
+                );
+                if (enabledClassIds.length < 2) {
+                    alert('Add at least two enabled classes with samples.');
+                    return false;
+                }
+                const enabledLabels = enabledClassIds.map(classId => this.classIdToName[classId]);
+                this.labels = enabledLabels;
+                const numClasses = enabledLabels.length;
+
+                const xs = [];
+                const ys = [];
+                enabledClassIds.forEach((classId, index) => {
+                    this.trainingData[classId].forEach(feature => {
+                        xs.push(feature);
+                        ys.push(tf.oneHot(index, numClasses));
+                    });
+                });
+
+                const xsTensor = tf.stack(xs);
+                const ysTensor = tf.stack(ys);
+
+                this.model = tf.sequential({
+                    layers: [
+                        tf.layers.dense({ inputShape: [xs[0].shape[0]], units: 128, activation: 'relu' }),
+                        tf.layers.dropout({ rate: 0.2 }),
+                        tf.layers.dense({ units: numClasses, activation: 'softmax' })
+                    ]
+                });
+
+                this.model.compile({
+                    optimizer: tf.train.adam(learningRate),
+                    loss: 'categoricalCrossentropy',
+                    metrics: ['accuracy']
+                });
+
+                await this.model.fit(xsTensor, ysTensor, {
+                    epochs,
+                    batchSize,
+                    shuffle: true,
+                    callbacks: {
+                        onEpochEnd: (epoch, logs) => {
+                            onEpochUpdate(epoch, epochs);
+                        }
+                    }
+                });
+
+                xsTensor.dispose();
+                ysTensor.dispose();
+                return true;
+            }
+
+            async predict(tensor) {
+                if (!this.model || !this.mobilenet) return null;
+                const features = tf.tidy(() => this.mobilenet.infer(tensor, true).squeeze());
+                const prediction = this.model.predict(features.expandDims(0));
+                return prediction.dataSync();
+            }
+
+            getClassLabels() {
+                return this.labels;
+            }
+
+            async export() {
+    if (!this.model) {
+        alert('No model trained yet.');
+        return;
+    }
+
+    const zip = new JSZip();
+
+    // Save the model using a custom handler
+    const saveResult = await this.model.save(tf.io.withSaveHandler(async (artifacts) => {
+        // Save model topology at root
+        zip.file('model.json', JSON.stringify(artifacts.modelTopology));
+
+        // Save weights at root
+        if (artifacts.weightData) {
+            const weightsBlob = new Blob([artifacts.weightData], { type: 'application/octet-stream' });
+            zip.file('weights.bin', weightsBlob);
+        }
+
+        // Include weight specs for loading (optional)
+        if (artifacts.weightSpecs) {
+            zip.file('weight_specs.json', JSON.stringify(artifacts.weightSpecs));
+        }
+
+        return artifacts;
+    }));
+
+    // Generate CSV with class names at root
+    const classLabels = this.getClassLabels();
+    const csvContent = "index,class_name\n" + classLabels.map((name, index) => `${index},"${name}"`).join("\n");
+    zip.file('class_names.csv', csvContent);
+
+    // Generate and download the ZIP file
+    zip.generateAsync({ type: "blob" }).then((blob) => {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'teachable-machine-export.zip';
+        a.click();
+        URL.revokeObjectURL(url);
+    });
+}
+        }
+
+        const classifier = new ImageClassifier();
+        let classCounter = 0;
+        const classesContainer = document.getElementById('classesContainer');
+        const connectionsContainer = document.getElementById('connections');
+        const mainContainer = document.getElementById('mainContainer');
+        let activeWebcam = null;
+        let previewWebcam = null;
+
+        classifier.load();
+
+        function createDropdownMenu(classId) {
+            const menu = document.createElement('div');
+            menu.className = 'dropdown-menu';
+            menu.innerHTML = `
+                <a class="dropdown-item disable-class-btn">Disable class</a>
+                <a class="dropdown-item remove-samples-btn">Remove all samples</a>
+                <a class="dropdown-item save-samples-btn">Save samples</a>
+            `;
+            return menu;
+        }
+
+        function createClassCard() {
+            classCounter++;
+            const classId = `class-${classCounter}`;
+            const card = document.createElement('div');
+            card.className = 'class-card';
+            card.id = classId;
+            card.innerHTML = `
+                <div class="class-header">
+                    <div class="class-title">
+                        <span class="class-name">Class ${classCounter}</span>
+                        <div class="class-icons">
+                            <i class="bi bi-pencil edit-icon"></i>
+                            <i class="bi bi-trash delete-icon"></i>
+                        </div>
+                    </div>
+                    <div class="menu-dots">
+                        <i class="bi bi-three-dots-vertical"></i>
+                    </div>
+                </div>
+                <div class="class-content">
+                    <div class="samples-label">Add Image Samples:</div>
+                    <div class="sample-buttons">
+                        <button class="sample-button webcam-btn">
+                            <i class="bi bi-camera-video sample-icon"></i>
+                            <span class="sample-label">Webcam</span>
+                        </button>
+                        <button class="sample-button upload-btn">
+                            <i class="bi bi-upload sample-icon"></i>
+                            <span class="sample-label">Upload</span>
+                        </button>
+                    </div>
+                    <div class="samples-grid" id="samples-${classId}"></div>
+                </div>
+            `;
+
+            classifier.classIdToName[classId] = `Class ${classCounter}`; // Initial name
+            const dropdown = createDropdownMenu(classId);
+            card.querySelector('.menu-dots').appendChild(dropdown);
+            addClassEventListeners(card);
+            return card;
+        }
+
+        function addClassEventListeners(card) {
+            const menuDots = card.querySelector('.menu-dots');
+            const dropdown = card.querySelector('.dropdown-menu');
+            const editIcon = card.querySelector('.edit-icon');
+            const deleteIcon = card.querySelector('.delete-icon');
+            const className = card.querySelector('.class-name');
+            const webcamBtn = card.querySelector('.webcam-btn');
+            const uploadBtn = card.querySelector('.upload-btn');
+
+            menuDots.addEventListener('click', (e) => {
+                e.stopPropagation();
+                dropdown.classList.toggle('show');
+                document.querySelectorAll('.dropdown-menu.show').forEach(m => {
+                    if (m !== dropdown) m.classList.remove('show');
+                });
+            });
+
+            document.addEventListener('click', () => dropdown.classList.remove('show'));
+
+            card.querySelector('.disable-class-btn').addEventListener('click', () => {
+                card.classList.toggle('disabled');
+                dropdown.classList.remove('show');
+                const btn = card.querySelector('.disable-class-btn');
+                btn.textContent = card.classList.contains('disabled') ? 'Enable class' : 'Disable class';
+            });
+
+            card.querySelector('.remove-samples-btn').addEventListener('click', () => {
+                const samplesGrid = card.querySelector('.samples-grid');
+                samplesGrid.innerHTML = '';
+                classifier.trainingData[card.id] = [];
+                dropdown.classList.remove('show');
+            });
+
+            card.querySelector('.save-samples-btn').addEventListener('click', () => {
+                const samples = card.querySelectorAll('.sample-image');
+                if (samples.length === 0) {
+                    alert('No samples to save.');
+                } else {
+                    const className = card.querySelector('.class-name').textContent;
+                    const zip = new JSZip();
+                    const folder = zip.folder(className);
+                    samples.forEach((img, index) => {
+                        const dataURL = img.src;
+                        const base64 = dataURL.split(',')[1];
+                        folder.file(`sample${index + 1}.png`, base64, {base64: true});
+                    });
+                    zip.generateAsync({type: "blob"}).then(blob => {
+                        const url = URL.createObjectURL(blob);
+                        const a = document.createElement('a');
+                        a.href = url;
+                        a.download = `${className}_samples.zip`;
+                        a.click();
+                        URL.revokeObjectURL(url);
+                    });
+                }
+                dropdown.classList.remove('show');
+            });
+
+            deleteIcon.addEventListener('click', () => {
+                if (confirm('Delete this class?')) {
+                    delete classifier.trainingData[card.id];
+                    const index = classifier.labels.indexOf(classifier.classIdToName[card.id]);
+                    if (index > -1) classifier.labels.splice(index, 1);
+                    delete classifier.classIdToName[card.id];
+                    card.remove();
+                    drawConnections();
+                }
+            });
+
+            editIcon.addEventListener('click', () => {
+                const currentName = className.textContent;
+                const input = document.createElement('input');
+                input.className = 'class-name-edit';
+                input.value = currentName;
+                input.maxLength = 30;
+
+                const parent = className.parentNode;
+                parent.replaceChild(input, className);
+                input.focus();
+
+                const finishEditing = () => {
+                    const newName = input.value.trim() || currentName;
+                    const newClassName = document.createElement('span');
+                    newClassName.className = 'class-name';
+                    newClassName.textContent = newName;
+                    if (input.parentNode) {
+                        input.parentNode.replaceChild(newClassName, input);
+                        classifier.updateLabel(card.id, newName); // Update the label in classifier
+                    }
+                };
+
+                input.addEventListener('blur', () => setTimeout(finishEditing, 0));
+                input.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter') finishEditing();
+                });
+            });
+
+            webcamBtn.addEventListener('click', () => startWebcam(card.id));
+            uploadBtn.addEventListener('click', () => triggerUpload(card.id));
+        }
+
+        async function startWebcam(classId) {
+            if (activeWebcam) activeWebcam.stop();
+
+            const modal = document.createElement('div');
+            modal.className = 'webcam-modal';
+            modal.innerHTML = `
+                <div class="webcam-modal-content">
+                    <video id="webcam-video" autoplay playsinline></video>
+                    <button id="capture-btn">Capture</button>
+                    <button id="close-btn">Close</button>
+                </div>
+            `;
+            document.body.appendChild(modal);
+            modal.style.display = 'flex';
+
+            const video = document.getElementById('webcam-video');
+            activeWebcam = new Webcam(video);
+            await activeWebcam.setup();
+
+            document.getElementById('capture-btn').addEventListener('click', () => {
+                const { imageData, tensor } = activeWebcam.capture();
+                addSample(classId, imageData, tensor);
+            });
+
+            document.getElementById('close-btn').addEventListener('click', () => {
+                activeWebcam.stop();
+                activeWebcam = null;
+                modal.remove();
+            });
+        }
+
+        function triggerUpload(classId) {
+            const fileInput = document.getElementById('fileInput');
+            fileInput.value = '';
+            fileInput.click();
+            fileInput.onchange = () => {
+                Array.from(fileInput.files).forEach(file => {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        const img = new Image();
+                        img.src = e.target.result;
+                        img.onload = () => {
+                            const tensor = tf.tidy(() => {
+                                const canvas = document.createElement('canvas');
+                                canvas.width = 224;
+                                canvas.height = 224;
+                                const ctx = canvas.getContext('2d');
+                                ctx.drawImage(img, 0, 0, 224, 224);
+                                const image = tf.browser.fromPixels(canvas);
+                                return image.toFloat().div(tf.scalar(127.5)).sub(tf.scalar(1)).expandDims(0);
+                            });
+                            addSample(classId, e.target.result, tensor);
+                        };
+                    };
+                    reader.readAsDataURL(file);
+                });
+            };
+        }
+
+        function addSample(classId, imageData, tensor) {
+            classifier.addExample(classId, tensor);
+            const grid = document.getElementById(`samples-${classId}`);
+            const img = document.createElement('img');
+            img.src = imageData;
+            img.className = 'sample-image';
+            grid.appendChild(img);
+        }
+
+        function createAddClassButton() {
+            const btn = document.createElement('button');
+            btn.className = 'add-class-btn';
+            btn.innerHTML = '<i class="bi bi-plus-lg add-icon"></i> Add a class';
+            btn.addEventListener('click', () => {
+                const card = createClassCard();
+                classesContainer.insertBefore(card, btn);
+                drawConnections();
+            });
+            return btn;
+        }
+
+        function initializePage() {
+            for (let i = 0; i < 2; i++) {
+                classesContainer.appendChild(createClassCard());
+            }
+            classesContainer.appendChild(createAddClassButton());
+            drawConnections();
+
+            const trainBtn = document.getElementById('trainBtn');
+            const trainingSection = document.querySelector('.training-section');
+            const advancedDropdown = document.querySelector('.advanced-dropdown');
+            const panel = document.createElement('div');
+            panel.className = 'advanced-panel';
+            panel.innerHTML = `
+                <div class="option-group">
+                    <label>Epochs:</label>
+                    <input type="number" id="epochs" value="10" min="1" max="100">
+                </div>
+                <div class="option-group">
+                    <label>Batch Size:</label>
+                    <input type="number" id="batchSize" value="16" min="1" max="64">
+                </div>
+                <div class="option-group">
+                    <label>Learning Rate:</label>
+                    <input type="number" id="learningRate" value="0.001" min="0.0001" max="0.1" step="0.0001">
+                </div>
+            `;
+            advancedDropdown.appendChild(panel);
+            panel.style.display = 'none';
+
+            const trainingStatus = document.createElement('div');
+            trainingStatus.className = 'training-status';
+            trainingSection.insertBefore(trainingStatus, advancedDropdown);
+
+            advancedDropdown.addEventListener('click', (e) => {
+                if (e.target === advancedDropdown || e.target.tagName === 'I' || (e.target.tagName === 'DIV' && e.target.parentNode === advancedDropdown)) {
+                    panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
+                }
+            });
+
+            trainBtn.addEventListener('click', async () => {
+                const epochs = parseInt(document.getElementById('epochs').value) || 10;
+                const batchSize = parseInt(document.getElementById('batchSize').value) || 16;
+                const learningRate = parseFloat(document.getElementById('learningRate').value) || 0.001;
+
+                trainBtn.disabled = true;
+                trainBtn.textContent = 'Training...';
+                trainingStatus.textContent = 'Preparing training data...';
+
+                const success = await classifier.train(epochs, batchSize, learningRate, (epoch, totalEpochs) => {
+                    const progress = ((epoch + 1) / totalEpochs * 100).toFixed(0);
+                    trainingStatus.textContent = `Training: Epoch ${epoch + 1} of ${totalEpochs} (${progress}%)`;
+                });
+
+                if (success) {
+                    trainingStatus.textContent = 'Training completed!';
+                    document.getElementById('previewContent').innerHTML = `
+                        <video id="preview-webcam" autoplay playsinline></video>
+                        <div class="prediction-bars" id="predictionBars"></div>
+                    `;
+                    startPreview();
+                    setTimeout(() => trainingStatus.textContent = '', 3000);
+                } else {
+                    trainingStatus.textContent = 'Training failed. Check console for details.';
+                    setTimeout(() => trainingStatus.textContent = '', 3000);
+                }
+
+                trainBtn.disabled = false;
+                trainBtn.textContent = 'Train Model';
+            });
+
+            document.getElementById('exportTab').addEventListener('click', () => classifier.export());
+        }
+
+        async function startPreview() {
+            const video = document.getElementById('preview-webcam');
+            previewWebcam = new Webcam(video);
+            await previewWebcam.setup();
+            predictLoop();
+        }
+
+        function predictLoop() {
+            if (previewWebcam && classifier.model) {
+                const { tensor } = previewWebcam.capture();
+                classifier.predict(tensor).then(predictions => {
+                    const bars = document.getElementById('predictionBars');
+                    bars.innerHTML = '';
+                    classifier.getClassLabels().forEach((label, i) => {
+                        const percent = (predictions[i] * 100).toFixed(1);
+                        const bar = document.createElement('div');
+                        bar.className = 'prediction-bar';
+                        bar.innerHTML = `
+                            <span class="class-name">${label}</span>
+                            <div class="bar-container">
+                                <div class="bar" style="width: ${percent}%; background-color: ${getColor(i)}"></div>
+                            </div>
+                            <span class="prediction-value">${percent}%</span>
+                        `;
+                        bars.appendChild(bar);
+                    });
+                    tensor.dispose();
+                });
+            }
+            requestAnimationFrame(predictLoop);
+        }
+
+        function getColor(index) {
+            const colors = ['#4285f4', '#34a853', '#fbbc05', '#ea4335', '#9b59b6', '#e67e22', '#2ecc71'];
+            return colors[index % colors.length];
+        }
+
+        function drawConnections() {
+            connectionsContainer.innerHTML = '';
+            const rect = mainContainer.getBoundingClientRect();
+            const cards = document.querySelectorAll('.class-card');
+            if (!cards.length) return;
+
+            const training = document.querySelector('.training-section');
+            const trainingRect = training.getBoundingClientRect();
+            const trainX = trainingRect.left - rect.left + trainingRect.width / 2;
+            const trainY = trainingRect.top - rect.top + trainingRect.height / 2;
+
+            const preview = document.querySelector('.preview-section');
+            const previewRect = preview.getBoundingClientRect();
+            const previewX = previewRect.left - rect.left + previewRect.width / 2;
+            const previewY = previewRect.top - rect.top + previewRect.height / 2;
+
+            cards.forEach(card => {
+                const cardRect = card.getBoundingClientRect();
+                const startX = cardRect.right - rect.left;
+                const startY = cardRect.top - rect.top + cardRect.height / 2;
+                const endX = trainingRect.left - rect.left;
+
+                const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                const controlX1 = startX + (endX - startX) * 0.3;
+                const controlY1 = startY;
+                const controlX2 = endX - (endX - startX) * 0.3;
+                const controlY2 = trainY;
+                path.setAttribute('d', `M ${startX} ${startY} C ${controlX1} ${controlY1}, ${controlX2} ${controlY2}, ${endX} ${trainY}`);
+                path.setAttribute('fill', 'none');
+                path.setAttribute('stroke', '#D3D3D3');
+                path.setAttribute('stroke-width', '2');
+                connectionsContainer.appendChild(path);
+            });
+
+            const trainEndX = trainingRect.right - rect.left;
+            const previewStartX = previewRect.left - rect.left;
+            const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+            const controlX1 = trainEndX + (previewStartX - trainEndX) * 0.3;
+            const controlY1 = trainY;
+            const controlX2 = previewStartX - (previewStartX - trainEndX) * 0.3;
+            const controlY2 = previewY;
+            path.setAttribute('d', `M ${trainEndX} ${trainY} C ${controlX1} ${controlY1}, ${controlX2} ${controlY2}, ${previewStartX} ${previewY}`);
+            path.setAttribute('fill', 'none');
+            path.setAttribute('stroke', '#D3D3D3');
+            path.setAttribute('stroke-width', '2');
+            path.setAttribute('stroke-dasharray', '5,5');
+            connectionsContainer.appendChild(path);
+        }
+
+        document.addEventListener('DOMContentLoaded', initializePage);
+        window.addEventListener('resize', drawConnections);
+        window.addEventListener('scroll', drawConnections);
+    </script>
+</body>
+</html>

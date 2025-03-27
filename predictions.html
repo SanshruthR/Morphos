@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Morphos</title>
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+<link rel="manifest" href="/site.webmanifest">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .glass-container {
+            max-width: 800px;
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+        
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+            margin-bottom: 30px;
+            font-weight: 700;
+        }
+        
+        .glass-btn {
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(5px);
+            -webkit-backdrop-filter: blur(5px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 8px;
+            padding: 12px 24px;
+            font-size: 16px;
+            font-weight: 600;
+            color: #2c3e50;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin: 5px;
+        }
+        
+        .glass-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+        }
+        
+        .glass-btn.primary {
+            background: rgba(13, 110, 253, 0.7);
+            color: white;
+        }
+        
+        .glass-btn.primary:hover {
+            background: rgba(13, 110, 253, 0.8);
+        }
+        
+        #webcam-container {
+            width: 224px;
+            height: 224px;
+            margin: 20px auto;
+            background: rgba(0, 0, 0, 0.2);
+            position: relative;
+            border-radius: 10px;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+        
+        #webcam-video, #imagePreview {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        #webcam-video {
+            transform: scaleX(-1);
+        }
+        
+        .prediction-bar {
+            height: 30px;
+            margin: 10px 0;
+            background: rgba(233, 236, 239, 0.5);
+            border-radius: 15px;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+        
+        .prediction-fill {
+            height: 100%;
+            transition: width 0.3s ease;
+            position: relative;
+        }
+        
+        .prediction-text {
+            position: absolute;
+            left: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: white;
+            font-size: 14px;
+            font-weight: bold;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+        }
+        
+        #status {
+            min-height: 24px;
+            margin: 15px 0;
+            font-size: 14px;
+            color: #2c3e50;
+            text-align: center;
+        }
+        
+        .button-group {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .input-group {
+            display: none;
+            margin-bottom: 20px;
+        }
+        
+        #imageInput {
+            display: none;
+        }
+        
+        @media (max-width: 768px) {
+            .glass-container {
+                width: 95%;
+                padding: 20px;
+            }
+            
+            .button-group {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .glass-btn {
+                width: 100%;
+                max-width: 280px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="glass-container">
+        <h1>Custom Model Predictor</h1>
+        
+        <div class="button-group">
+            <button class="glass-btn primary" id="loadModelBtn">
+                Load Model ZIP
+            </button>
+            <button class="glass-btn" id="useWebcamBtn">
+                Use Webcam
+            </button>
+            <button class="glass-btn" id="uploadImageBtn">
+                Upload Image
+            </button>
+        </div>
+        
+        <div class="input-group" id="imageUploadGroup">
+            <input type="file" id="imageInput" accept="image/*">
+            <button class="glass-btn" id="predictImageBtn" disabled>Predict Image</button>
+        </div>
+        
+        <input type="file" id="modelInput" accept=".zip" hidden>
+        
+        <div id="status">Waiting for model...</div>
+
+        <div id="webcam-container">
+            <video id="webcam-video" autoplay playsinline></video>
+            <img id="imagePreview" style="display: none;">
+        </div>
+
+        <div id="predictions" class="mt-4"></div>
+    </div>
+
+    <!-- Load TensorFlow.js, MobileNet, and JSZip -->
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@3.18.0/dist/tf.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/mobilenet@2.1.0/dist/mobilenet.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+
+    <script>
+        // Global variables
+        let mobilenet = null;
+        let customModel = null;
+        let webcamStream = null;
+        let classLabels = [];
+        let predictionInterval = null;
+        const colors = ['#4285f4', '#34a853', '#fbbc05', '#ea4335', '#9b59b6', '#2ecc71'];
+
+        // Initialize webcam
+        async function setupWebcam() {
+            const video = document.getElementById('webcam-video');
+            const imagePreview = document.getElementById('imagePreview');
+            
+            // Hide image preview and show video
+            imagePreview.style.display = 'none';
+            video.style.display = 'block';
+            
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ 
+                    video: { 
+                        width: { ideal: 224 }, 
+                        height: { ideal: 224 },
+                        facingMode: 'user' 
+                    },
+                    audio: false
+                });
+                video.srcObject = stream;
+                await new Promise((resolve) => {
+                    video.onloadedmetadata = () => {
+                        video.play();
+                        resolve();
+                    };
+                });
+                return stream;
+            } catch (error) {
+                throw new Error(`Could not access webcam: ${error.message}`);
+            }
+        }
+
+        // Load model from ZIP file
+        async function loadModelFromZip(zipFile) {
+            const status = document.getElementById('status');
+            status.textContent = 'Loading models...';
+            status.style.color = '';
+
+            try {
+                // Load MobileNet first (must match training version)
+                status.textContent = 'Loading MobileNet (feature extractor)...';
+                mobilenet = await window.mobilenet.load({ version: 2, alpha: 0.5 });
+
+                // Load ZIP file
+                const zip = await JSZip.loadAsync(zipFile);
+                
+                // Get all required files
+                const modelJsonFile = findFile(zip, 'model.json');
+                const weightsFile = findFile(zip, 'weights.bin');
+                const weightSpecsFile = findFile(zip, 'weight_specs.json');
+                const csvFile = findFile(zip, 'class_names.csv');
+                
+                if (!modelJsonFile || !weightsFile || !weightSpecsFile) {
+                    throw new Error('ZIP must contain model.json, weights.bin, and weight_specs.json');
+                }
+                if (!csvFile) {
+                    throw new Error('class_names.csv not found in ZIP');
+                }
+
+                // Parse class labels from CSV
+                const csvData = await csvFile.async('text');
+                classLabels = parseCSV(csvData);
+                if (classLabels.length === 0) {
+                    throw new Error('No class labels found in CSV');
+                }
+
+                // Load all model artifacts
+                status.textContent = 'Loading your custom model...';
+                
+                const modelTopology = JSON.parse(await modelJsonFile.async('text'));
+                const weightSpecs = JSON.parse(await weightSpecsFile.async('text'));
+                const weightData = await weightsFile.async('arraybuffer');
+                
+                // Create model artifacts with all required fields
+                const modelArtifacts = {
+                    modelTopology: modelTopology,
+                    weightSpecs: weightSpecs,
+                    weightData: weightData
+                };
+                
+                // Load the model with all artifacts
+                customModel = await tf.loadLayersModel(tf.io.fromMemory(modelArtifacts));
+
+                status.textContent = 'Models loaded successfully! Choose an input method.';
+                
+                // Enable webcam and image upload buttons
+                document.getElementById('useWebcamBtn').disabled = false;
+                document.getElementById('uploadImageBtn').disabled = false;
+            } catch (error) {
+                status.textContent = `Error: ${error.message}`;
+                status.style.color = 'red';
+                console.error('Loading failed:', error);
+                
+                // Clean up if there was an error
+                if (customModel) {
+                    customModel.dispose();
+                    customModel = null;
+                }
+                if (mobilenet) {
+                    mobilenet = null;
+                }
+            }
+        }
+
+        // Helper function to find files in ZIP (including subdirectories)
+        function findFile(zip, filename) {
+            return Object.values(zip.files).find(file => 
+                file.name.endsWith(filename) || 
+                file.name.split('/').pop() === filename
+            );
+        }
+
+        // Parse CSV file with class names
+        function parseCSV(csvText) {
+            const results = [];
+            const rows = csvText.split('\n').filter(row => row.trim() !== '');
+            
+            // Check for header row
+            const hasHeader = rows[0].toLowerCase().includes('index,class');
+            const startRow = hasHeader ? 1 : 0;
+
+            for (let i = startRow; i < rows.length; i++) {
+                const row = rows[i];
+                // Handle quoted class names that might contain commas
+                const match = row.match(/^(\d+),"?([^"]*)"?$/);
+                if (match && match.length >= 3) {
+                    const index = parseInt(match[1]);
+                    const className = match[2].trim();
+                    if (className) {
+                        results[index] = className;
+                    }
+                }
+            }
+            return results.filter(c => c); // Remove empty entries
+        }
+
+        // Main prediction loop for webcam
+        async function predictLoop() {
+            if (!customModel || !mobilenet) return;
+
+            const video = document.getElementById('webcam-video');
+            const tensor = tf.tidy(() => {
+                // Capture frame from webcam
+                const image = tf.browser.fromPixels(video)
+                    .resizeBilinear([224, 224])
+                    .toFloat();
+                
+                // Extract features using MobileNet (exactly like during training)
+                return mobilenet.infer(image, true).squeeze();
+            });
+
+            try {
+                // Get predictions from your custom model
+                const predictions = await customModel.predict(tensor.expandDims(0)).data();
+                updatePredictions(predictions);
+            } catch (error) {
+                console.error('Prediction error:', error);
+            } finally {
+                // Clean up tensors to prevent memory leaks
+                tensor.dispose();
+            }
+        }
+
+        // Predict from an image
+        async function predictImage(imageElement) {
+            if (!customModel || !mobilenet) return;
+
+            const tensor = tf.tidy(() => {
+                // Process the image
+                const image = tf.browser.fromPixels(imageElement)
+                    .resizeBilinear([224, 224])
+                    .toFloat();
+                
+                // Extract features using MobileNet
+                return mobilenet.infer(image, true).squeeze();
+            });
+
+            try {
+                // Get predictions from your custom model
+                const predictions = await customModel.predict(tensor.expandDims(0)).data();
+                updatePredictions(predictions);
+            } catch (error) {
+                console.error('Prediction error:', error);
+            } finally {
+                // Clean up tensors to prevent memory leaks
+                tensor.dispose();
+            }
+        }
+
+        // Update the prediction bars display
+        function updatePredictions(predictions) {
+            const container = document.getElementById('predictions');
+            container.innerHTML = '';
+
+            predictions.forEach((confidence, index) => {
+                const percentage = Math.min(100, (confidence * 100).toFixed(1));
+                const label = classLabels[index] || `Class ${index}`;
+                
+                const bar = document.createElement('div');
+                bar.className = 'prediction-bar';
+                bar.innerHTML = `
+                    <div class="prediction-fill" 
+                         style="width: ${percentage}%;
+                                background: ${colors[index % colors.length]};">
+                        <span class="prediction-text">${label}: ${percentage}%</span>
+                    </div>
+                `;
+                container.appendChild(bar);
+            });
+        }
+
+        // Start the webcam prediction process
+        async function startWebcamPrediction() {
+            try {
+                // Clean up previous webcam stream if exists
+                if (webcamStream) {
+                    webcamStream.getTracks().forEach(track => track.stop());
+                }
+                
+                // Set up webcam
+                webcamStream = await setupWebcam();
+                
+                // Start prediction loop
+                if (predictionInterval) {
+                    clearInterval(predictionInterval);
+                }
+                predictionInterval = setInterval(predictLoop, 500);
+                
+                document.getElementById('status').textContent = 'Using webcam for predictions...';
+            } catch (error) {
+                const status = document.getElementById('status');
+                status.textContent = `Webcam error: ${error.message}`;
+                status.style.color = 'red';
+            }
+        }
+
+        // Event listeners
+        document.getElementById('loadModelBtn').addEventListener('click', () => {
+            document.getElementById('modelInput').click();
+        });
+
+        document.getElementById('modelInput').addEventListener('change', async (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                // Clean up previous models if they exist
+                if (customModel) {
+                    customModel.dispose();
+                    customModel = null;
+                }
+                if (mobilenet) {
+                    mobilenet = null;
+                }
+                
+                // Disable input buttons until model loads
+                document.getElementById('useWebcamBtn').disabled = true;
+                document.getElementById('uploadImageBtn').disabled = true;
+                
+                // Load the new model
+                await loadModelFromZip(file);
+            }
+        });
+
+        document.getElementById('useWebcamBtn').addEventListener('click', () => {
+            if (!customModel) {
+                document.getElementById('status').textContent = 'Please load a model first';
+                document.getElementById('status').style.color = 'red';
+                return;
+            }
+            startWebcamPrediction();
+            document.getElementById('imageUploadGroup').style.display = 'none';
+        });
+
+        document.getElementById('uploadImageBtn').addEventListener('click', () => {
+            if (!customModel) {
+                document.getElementById('status').textContent = 'Please load a model first';
+                document.getElementById('status').style.color = 'red';
+                return;
+            }
+            document.getElementById('imageUploadGroup').style.display = 'flex';
+            document.getElementById('imageInput').click();
+        });
+
+        document.getElementById('imageInput').addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    const imagePreview = document.getElementById('imagePreview');
+                    imagePreview.src = event.target.result;
+                    imagePreview.style.display = 'block';
+                    document.getElementById('webcam-video').style.display = 'none';
+                    
+                    // Stop webcam if it's running
+                    if (webcamStream) {
+                        webcamStream.getTracks().forEach(track => track.stop());
+                        webcamStream = null;
+                    }
+                    if (predictionInterval) {
+                        clearInterval(predictionInterval);
+                        predictionInterval = null;
+                    }
+                    
+                    document.getElementById('predictImageBtn').disabled = false;
+                    document.getElementById('status').textContent = 'Image loaded. Click "Predict Image" to analyze.';
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        document.getElementById('predictImageBtn').addEventListener('click', () => {
+            const imagePreview = document.getElementById('imagePreview');
+            predictImage(imagePreview);
+            document.getElementById('status').textContent = 'Analyzing image...';
+        });
+
+        // Clean up when page is closed
+        window.addEventListener('beforeunload', () => {
+            if (webcamStream) {
+                webcamStream.getTracks().forEach(track => track.stop());
+            }
+            if (customModel) {
+                customModel.dispose();
+            }
+            if (predictionInterval) {
+                clearInterval(predictionInterval);
+            }
+        });
+
+        // Initialize with disabled buttons (until model loads)
+        document.getElementById('useWebcamBtn').disabled = true;
+        document.getElementById('uploadImageBtn').disabled = true;
+    </script>
+</body>
+</html>
